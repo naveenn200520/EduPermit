@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – EduPermit Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.15), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(244, 63, 94, 0.1), transparent 50%);
+            background-color: #f0f4f8;
+            background-size: 200% 200%;
+            animation: fadeIn 0.6s ease-out, gradientFlow 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+            color: #0f172a;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Loading Screen overlay if needed, or just smooth fade in */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Left Side: Branding / Showcase */
+        .split-left {
+            flex: 1.2;
+            background: transparent;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px;
+            overflow: hidden;
+        }
+
+        /* Abstract shapes representing connections/nodes */
+        .shape-1 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
+            top: -100px;
+            left: -100px;
+            animation: pulse 8s infinite alternate ease-in-out;
+        }
+
+        .shape-2 {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.12), transparent 70%);
+            bottom: -200px;
+            right: -200px;
+            animation: pulse 12s infinite alternate-reverse ease-in-out;
+        }
+
+        .shape-mesh {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            opacity: 0.5;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 10;
+            max-width: 500px;
+        }
+
+        .brand-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .brand-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .brand-title span {
+            background: linear-gradient(to right, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .brand-desc {
+            font-size: 18px;
+            color: #475569;
+            line-height: 1.6;
+            font-weight: 400;
+            margin-bottom: 60px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 15px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Right Side: Login Form */
+        .split-right {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.03);
+            border-left: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Subtle glowing edge line between left and right */
+        .split-right::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            margin-bottom: 32px;
+        }
+
+        .login-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        /* Modern Role Toggle */
+        .role-wrapper {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 6px;
+            display: flex;
+            gap: 4px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .role-btn .icon {
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+
+        .role-btn:hover {
+            color: #475569;
+        }
+
+        .role-btn.active {
+            color: #fff;
+        }
+
+        .role-btn.active .icon {
+            transform: translateY(-2px) scale(1.1);
+        }
+
+        /* The sliding active background */
+        .role-slider {
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            width: calc(25% - 5px);
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            border-radius: 12px;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            padding-left: 44px;
+            color: #0f172a;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .input-wrap input:focus {
+            border-color: #6366f1;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .input-wrap .left-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 16px;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .input-wrap input:focus+.left-icon {
+            color: #6366f1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .demo-creds {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .demo-creds p {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .creds-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .cred-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cred-item .role {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .cred-item .val {
+            font-size: 12px;
+            color: #06b6d4;
+            font-family: monospace;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideUp 0.3s;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .split-left {
+                padding: 40px 24px;
+                flex: none;
+                min-height: auto;
+            }
+
+            .split-right {
+                padding: 40px 24px;
+            }
+
+            .shape-mesh {
+                display: none;
+            }
+
+            .brand-title {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Left Side: Professional Branding -->
+    <div class="split-left">
+        <div class="shape-1"></div>
+        <div class="shape-2"></div>
+        <div class="shape-mesh"></div>
+
+        <div class="brand-content">
+            <div class="brand-logo">🎓</div>
+            <h1 class="brand-title">Welcome to<br /><span>EduPermit Portal</span></h1>
+            <p class="brand-desc">The modern, intelligent platform managing campus outings, leaves, and approvals with
+                seamless automated tracking.</p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div> Instant QR Gate Passes
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div> Secure Multi-Level Approvals
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div> Real-time Attendance Analytics
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Login Interaction -->
+    <div class="split-right">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Sign In</h2>
+                <p>Access your personalized dashboard</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="role-wrapper">
+                <div class="role-slider" id="roleSlider"></div>
+                <button type="button" class="role-btn active" data-role="student" onclick="setRole('student', 0)">
+                    <span class="icon">👨‍🎓</span>Student
+                </button>
+                <button type="button" class="role-btn" data-role="staff" onclick="setRole('staff', 1)">
+                    <span class="icon">👩‍🏫</span>Staff
+                </button>
+                <button type="button" class="role-btn" data-role="hod" onclick="setRole('hod', 2)">
+                    <span class="icon">👨‍💼</span>HOD
+                </button>
+                <button type="button" class="role-btn" data-role="admin" onclick="setRole('admin', 3)">
+                    <span class="icon">🛠️</span>Admin
+                </button>
+            </div>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="hidden" name="role" id="roleInput" value="student" />
+
+                <div class="form-group">
+                    <label id="identifierLabel">Register Number</label>
+                    <div class="input-wrap">
+                        <input type="text" name="identifier" id="identifierInput" placeholder="e.g. 22CS001" required
+                            autocomplete="off" />
+                        <!-- User icon -->
+                        <span class="left-icon">👤</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <input type="password" name="password" placeholder="••••••••" required />
+                        <!-- Lock icon -->
+                        <span class="left-icon">🗝️</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Login to Platform <span>→</span></button>
+            </form>
+
+            <div class="demo-creds">
+                <p>System Demo Access</p>
+                <div class="creds-grid">
+                    <div class="cred-item">
+                        <div class="role">Student</div>
+                        <div class="val">22CS001<br />student123</div>
+                    </div>
+                    <div class="cred-item">
+                        <div class="role">Staff</div>
+                        <div class="val">staff@college.edu<br />staff123</div>
+                    </div>
+                    <div class="cred-item">
+                        <div class="role">HOD</div>
+                        <div class="val">hod@college.edu<br />hod123</div>
+                    </div>
+                    <div class="cred-item">
+                        <div class="role">Admin</div>
+                        <div class="val">admin@college.edu<br />admin123</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setRole(role, index) {
+            // Update slider position
+            const slider = document.getElementById('roleSlider');
+            slider.style.transform = `translateX(${index * 100}%)`;
+
+            // Active classes
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-role="${role}"]`).classList.add('active');
+
+            // Set input value
+            document.getElementById('roleInput').value = role;
+
+            // Form dynamic labels
+            const label = document.getElementById('identifierLabel');
+            const input = document.getElementById('identifierInput');
+
+            if (role === 'student') {
+                label.textContent = 'Register Number';
+                input.placeholder = 'e.g. 22CS001';
+            } else {
+                label.textContent = 'Email Address';
+                input.placeholder = `e.g. ${role}@college.edu`;
+            }
+        }
+    </script>
+</body>
+
+</html>

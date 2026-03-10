@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block page_title %}📊 Staff Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending }}</div>
+            <div class="stat-label">Pending Requests</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ approved }}</div>
+            <div class="stat-label">Approved</div>
+        </div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ forwarded }}</div>
+            <div class="stat-label">Forwarded to HOD</div>
+        </div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">My Students</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div>
+            <div class="card-title">Recent Permission Requests</div>
+            <div class="card-subtitle">Latest student requests in your department</div>
+        </div>
+        <a href="{{ url_for('staff_requests') }}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    {% if recent_requests %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Type</th>
+                    <th>Dates</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recent_requests %}
+                <tr>
+                    <td>
+                        <div style="font-weight:600;font-size:13px;">{{ r.student.name }}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">{{ r.student.reg_no }}</div>
+                    </td>
+                    <td><span class="badge badge-{{ r.perm_type }}">{{ r.perm_type|title }}</span></td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ r.from_date }}<br />{{ r.to_date }}</td>
+                    <td style="font-size:12px;color:var(--text-secondary);max-width:160px;">{{ r.reason[:60] }}{% if
+                        r.reason|length > 60 %}...{% endif %}</td>
+                    <td><span class="badge badge-{{ r.status }}">{{ r.status|title }}</span></td>
+                    <td>
+                        {% if r.status == 'pending' %}
+                        <button onclick="fillRemarkModal({{ r.id }}, 'approve'); openModal('remarkModal')"
+                            class="btn btn-success btn-xs">✅</button>
+                        <button onclick="fillRemarkModal({{ r.id }}, 'reject'); openModal('remarkModal')"
+                            class="btn btn-danger btn-xs">❌</button>
+                        {% elif r.status == 'approved' and r.qr_code_path %}
+                        <a href="{{ url_for('gate_pass', perm_id=r.id) }}" class="btn btn-teal btn-xs"
+                            target="_blank">🎫</a>
+                        {% else %}<span style="color:var(--text-muted);font-size:12px;">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No requests yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Remark Modal -->
+<div class="modal-overlay" id="remarkModal">
+    <div class="modal">
+        <div class="modal-title">📝 Action Remarks</div>
+        <form method="POST" id="remarkForm">
+            <input type="hidden" name="action" id="remarkAction" />
+            <div class="form-group">
+                <label class="form-label">Remarks (optional)</label>
+                <textarea name="remarks" class="form-control" rows="3"
+                    placeholder="Add a note for the student..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('remarkModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

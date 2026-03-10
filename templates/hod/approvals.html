@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}HOD Approvals{% endblock %}
+{% block page_title %}✅ Pending Approvals{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Forwarded Permission Requests</div>
+        <span style="font-size:13px;color:var(--text-muted);">{{ forwarded|length }} records</span>
+    </div>
+    {% if forwarded %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Type</th>
+                    <th>Dates</th>
+                    <th>Reason</th>
+                    <th>Staff Remarks</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in forwarded %}
+                <tr>
+                    <td>
+                        <div style="font-weight:600;">{{ r.student.name }}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">{{ r.student.reg_no }}</div>
+                    </td>
+                    <td><span class="badge badge-{{ r.perm_type }}">{{ r.perm_type|title }}</span></td>
+                    <td style="font-size:12px;">{{ r.from_date }}<br />{{ r.to_date }}</td>
+                    <td style="font-size:12px;color:var(--text-secondary);max-width:150px;">{{ r.reason[:60] }}{% if
+                        r.reason|length > 60 %}...{% endif %}</td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ r.staff_remarks or '—' }}</td>
+                    <td><span class="badge badge-{{ r.status }}">{{ r.status|title }}</span></td>
+                    <td>
+                        {% if r.status == 'forwarded' %}
+                        <button onclick="fillHODModal({{ r.id }}, 'approve');openModal('hodModal')"
+                            class="btn btn-success btn-xs">✅ Approve</button>
+                        <button onclick="fillHODModal({{ r.id }}, 'reject');openModal('hodModal')"
+                            class="btn btn-danger btn-xs">❌ Reject</button>
+                        {% elif r.status == 'approved' and r.qr_code_path %}
+                        <a href="{{ url_for('gate_pass', perm_id=r.id) }}" class="btn btn-teal btn-xs"
+                            target="_blank">🎫 Gate Pass</a>
+                        {% else %}<span style="color:var(--text-muted);font-size:12px;">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p>No pending approvals. All clear!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- HOD Modal -->
+<div class="modal-overlay" id="hodModal">
+    <div class="modal">
+        <div class="modal-title">👨‍💼 HOD Decision & Remarks</div>
+        <form method="POST" id="hodRemarkForm">
+            <input type="hidden" name="action" id="hodAction" />
+            <div class="form-group">
+                <label class="form-label">HOD Remarks</label>
+                <textarea name="remarks" class="form-control" rows="3" placeholder="Add your remarks..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('hodModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm Decision</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

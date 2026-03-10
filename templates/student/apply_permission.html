@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Apply Permission{% endblock %}
+{% block page_title %}📝 Apply for Permission{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:680px;">
+    <div class="card-header">
+        <div>
+            <div class="card-title">New Permission / Gate Pass Request</div>
+            <div class="card-subtitle">Fill the details below and submit for approval</div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('student_apply') }}">
+        <div class="form-group">
+            <label class="form-label">Permission Type</label>
+            <select name="perm_type" class="form-control" required id="permType" onchange="toggleTimes()">
+                <option value="">Select type...</option>
+                <option value="leave">🏠 Leave (Full Day)</option>
+                <option value="outing">🚶 Outing (Hours)</option>
+                <option value="od">🎓 On Duty (OD)</option>
+                <option value="medical">🏥 Medical Leave</option>
+                <option value="special">⭐ Special Permission</option>
+                <option value="emergency">🚨 Emergency Leave</option>
+                <option value="personal">💼 Personal Work</option>
+                <option value="bonafide">📄 Bonafide Certificate Request</option>
+            </select>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label">From Date</label>
+                <input type="date" name="from_date" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">To Date</label>
+                <input type="date" name="to_date" class="form-control" required />
+            </div>
+        </div>
+
+        <div class="form-grid" id="timeFields" style="display:none;">
+            <div class="form-group">
+                <label class="form-label">From Time</label>
+                <input type="time" name="from_time" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">To Time</label>
+                <input type="time" name="to_time" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Reason / Purpose</label>
+            <textarea name="reason" class="form-control" rows="4" placeholder="Explain the reason clearly..."
+                required></textarea>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary">📤 Submit Request</button>
+            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="max-width:680px;">
+    <div class="card-header">
+        <div class="card-title">📌 Guidelines</div>
+    </div>
+    <ul style="font-size:13.5px;color:var(--text-secondary);line-height:2;padding-left:20px;list-style:disc;">
+        <li>Submit requests at least <strong>1 day in advance</strong> for planned leaves.</li>
+        <li>Medical emergencies can be submitted on the same day.</li>
+        <li>Outing requests are subject to class advisor approval.</li>
+        <li>Extended leaves (&gt;2 days) will be forwarded to HOD for approval.</li>
+        <li>Gate pass QR code will be generated upon approval.</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleTimes() {
+        const t = document.getElementById('permType').value;
+        document.getElementById('timeFields').style.display = (t === 'outing' || t === 'od' || t === 'special' || t === 'personal') ? 'grid' : 'none';
+
+        // If bonafide is selected, maybe add a note or handle redirect if needed, 
+        // but for now we'll just let them submit the "Permission" as a bonafide request placeholder
+        // if they don't want to go to the specific bonafide page.
+    }
+</script>
+{% endblock %}

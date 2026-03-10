@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}🛠️ Admin Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-icon">👩‍🏫</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_staff }}</div>
+            <div class="stat-label">Staff & HODs</div>
+        </div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_depts }}</div>
+            <div class="stat-label">Departments</div>
+        </div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ active_requests }}</div>
+            <div class="stat-label">Active Requests</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ approved }}</div>
+            <div class="stat-label">Approved</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ rejected }}</div>
+            <div class="stat-label">Rejected</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">System Overview</div>
+        </div>
+        <div class="chart-wrap"><canvas id="adminChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Quick Actions</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+            <a href="{{ url_for('admin_students') }}" class="btn btn-primary">🎓 Manage Students</a>
+            <a href="{{ url_for('admin_staff') }}" class="btn btn-teal">👩‍🏫 Manage Staff & HOD</a>
+            <a href="{{ url_for('admin_departments') }}" class="btn btn-outline">🏢 Manage Departments</a>
+            <a href="{{ url_for('admin_reports') }}" class="btn btn-outline">📈 View Reports</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    createDonutChart('adminChart',
+        ['Approved', 'Rejected', 'Active/Pending'],
+        [{{ approved }}, {{ rejected }}, {{ active_requests }}],
+        ['#10b981', '#ef4444', '#f59e0b']
+    );
+</script>
+{% endblock %}

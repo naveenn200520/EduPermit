@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Bonafide Request{% endblock %}
+{% block page_title %}📄 Bonafide Certificate{% endblock %}
+{% block content %}
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Request Bonafide Certificate</div>
+        </div>
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Purpose of Certificate</label>
+                <textarea name="purpose" class="form-control" rows="4"
+                    placeholder="e.g. For bank account opening, Passport application..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">📤 Submit Request</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">My Bonafide Requests</div>
+        </div>
+        {% if bonafides %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Purpose</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bonafides %}
+                    <tr>
+                        <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                        <td>{{ b.purpose[:50] }}{% if b.purpose|length > 50 %}...{% endif %}</td>
+                        <td style="font-size:12px;color:var(--text-muted);">{{ b.created_at.strftime('%d %b %Y') }}</td>
+                        <td><span class="badge badge-{{ b.status }}">{{ b.status|title }}</span></td>
+                        <td>
+                            {% if b.status == 'approved' %}
+                            <a href="{{ url_for('view_bonafide', bon_id=b.id) }}" target="_blank"
+                                class="badge badge-approved"
+                                style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                                👁️ View & Print
+                            </a>
+                            {% else %}
+                            <span style="font-size:12px;color:var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📄</div>
+            <p>No bonafide requests yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

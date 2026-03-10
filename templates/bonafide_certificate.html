@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonafide Certificate - {{ student.name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary: #1e1e3e;
+            --accent: #6d28d9;
+            --text: #1a1a1a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .certificate-container {
+            width: 800px;
+            background: #fff;
+            padding: 60px;
+            border: 20px solid var(--primary);
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        .certificate-inner-border {
+            border: 2px solid var(--accent);
+            padding: 40px;
+            height: 100%;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .college-logo {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .college-name {
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .college-address {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .certificate-title {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .certificate-title h1 {
+            font-size: 36px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 0;
+            text-decoration: underline;
+        }
+
+        .certificate-content {
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: justify;
+            margin-bottom: 60px;
+        }
+
+        .student-name {
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 1px dashed var(--muted);
+            padding: 0 5px;
+        }
+
+        .purpose-box {
+            margin-top: 30px;
+            font-style: italic;
+            color: var(--muted);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 80px;
+        }
+
+        .signature-box {
+            text-align: center;
+            width: 200px;
+        }
+
+        .signature-line {
+            border-top: 1px solid var(--text);
+            margin-bottom: 10px;
+        }
+
+        .signature-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .date-box {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 100px;
+            opacity: 0.03;
+            pointer-events: none;
+            white-space: nowrap;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .verification-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            .certificate-container {
+                box-shadow: none;
+                border: 15px solid var(--primary);
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .no-print-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print-actions no-print">
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Print Certificate</button>
+        <button onclick="window.history.back()" class="btn btn-outline">Back</button>
+    </div>
+
+    <div class="certificate-container">
+        <div class="watermark">TJS ENGINEERING</div>
+        <div class="certificate-inner-border">
+            <div class="header">
+                <div class="college-logo">🎓</div>
+                <h2 class="college-name">TJS Engineering College</h2>
+                <div class="college-address">Affiliated to Anna University, Chennai</div>
+            </div>
+
+            <div class="certificate-title">
+                <h1>Bonafide Certificate</h1>
+            </div>
+
+            <div class="certificate-content">
+                This is to certify that <span class="student-name">{{ student.name }}</span>,
+                Reg No: <span class="student-name">{{ student.reg_no }}</span> is a bonafide student of this institution
+                studying in <span class="student-name">Year {{ student.year }}</span> of the
+                <span class="student-name">{{ student.department.name }}</span> department
+                during the academic year {{ (bonafide.created_at.year) }}-{{ (bonafide.created_at.year + 1) }}.
+                <br><br>
+                This certificate is issued at the request of the student for the purpose of:
+                <div class="purpose-box">"{{ bonafide.purpose }}"</div>
+            </div>
+
+            <div class="footer">
+                <div class="date-box">
+                    Date: {{ bonafide.updated_at.strftime('%d %B %Y') }}<br>
+                    Place: Innovation City
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line"></div>
+                    <div class="signature-title">PRINCIPAL / HOD</div>
+                    <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Digitally Signed</div>
+                </div>
+            </div>
+
+            <div class="verification-footer">
+                Certificate ID: BON-{{ bonafide.id }}-{{ student.reg_no }} | Verified at TJS Engineering College Portal
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

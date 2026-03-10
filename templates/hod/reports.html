@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}HOD Reports{% endblock %}
+{% block page_title %}📈 Reports & Analytics{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ approved }}</div>
+            <div class="stat-label">Approved</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ rejected }}</div>
+            <div class="stat-label">Rejected</div>
+        </div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Permission Status Distribution</div>
+        </div>
+        <div class="chart-wrap"><canvas id="reportChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Staff Overview</div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in staff_list %}
+                    <tr>
+                        <td style="font-weight:600;">{{ s.name }}</td>
+                        <td style="font-size:12px;color:var(--text-muted);">{{ s.designation or '—' }}</td>
+                        <td><span class="badge badge-{{ 'approved' if s.is_active else 'rejected' }}">{{ 'Active' if
+                                s.is_active else 'Inactive' }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Student-wise Request Summary</div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Reg No</th>
+                    <th>Year</th>
+                    <th>Section</th>
+                    <th>Total Requests</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td style="font-weight:600;">{{ s.name }}</td>
+                    <td style="font-family:monospace;color:var(--accent-light);">{{ s.reg_no }}</td>
+                    <td>{{ s.year }}</td>
+                    <td>{{ s.section }}</td>
+                    <td><span class="badge badge-info">{{ s.permissions|length }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    createDonutChart('reportChart',
+        ['Approved', 'Rejected', 'Pending', 'Forwarded'],
+        [{{ approved }}, {{ rejected }}, {{ pending }}, {{ forwarded }}],
+        ['#10b981', '#ef4444', '#f59e0b', '#06b6d4']
+    );
+</script>
+{% endblock %}

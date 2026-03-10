@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}🔔 Notifications{% endblock %}
+{% block content %}
+<div class="card" style="max-width:720px;">
+    <div class="card-header">
+        <div class="card-title">All Notifications</div>
+        <span style="font-size:13px;color:var(--text-muted);">{{ notifications|length }} total</span>
+    </div>
+    {% if notifications %}
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        {% for n in notifications %}
+        <div class="alert alert-{{ n.notif_type }}" style="border-radius:12px;">
+            <span>{% if n.notif_type == 'success' %}✅{% elif n.notif_type == 'danger' %}❌{% elif n.notif_type ==
+                'warning' %}⚠️{% else %}ℹ️{% endif %}</span>
+            <div style="flex:1;">
+                <div>{{ n.message }}</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:4px;">{{ n.created_at.strftime('%d %b %Y, %I:%M %p')
+                    }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <p>No notifications yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

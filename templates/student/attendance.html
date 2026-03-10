@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Attendance{% endblock %}
+{% block page_title %}📅 My Attendance{% endblock %}
+{% block content %}
+{% set overall = (attendance | sum(attribute='percentage') / attendance|length) if attendance else 0 %}
+<div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card {% if overall >= 75 %}green{% elif overall >= 65 %}yellow{% else %}red{% endif %}">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ '%.1f'|format(overall) }}%</div>
+            <div class="stat-label">Overall Attendance</div>
+        </div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ attendance|length }}</div>
+            <div class="stat-label">Subjects Tracked</div>
+        </div>
+    </div>
+    {% set low_att = attendance | selectattr('percentage', 'lt', 75) | list %}
+    <div class="stat-card {% if low_att %}red{% else %}green{% endif %}">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ low_att|length }}</div>
+            <div class="stat-label">Low Attendance Subjects</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Subject-wise Attendance</div>
+    </div>
+    {% if attendance %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Attended</th>
+                    <th>Total</th>
+                    <th>Percentage</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in attendance %}
+                {% set pct = a.percentage %}
+                <tr>
+                    <td style="font-weight:600;">{{ a.subject }}</td>
+                    <td>{{ a.attended_classes }}</td>
+                    <td>{{ a.total_classes }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div class="progress" style="width:120px;">
+                                <div class="progress-bar {% if pct >= 75 %}green{% elif pct >= 65 %}yellow{% else %}red{% endif %}"
+                                    style="width:{{ pct }}%;"></div>
+                            </div>
+                            <span
+                                class="att-pct {% if pct >= 75 %}good{% elif pct >= 65 %}warn{% else %}bad{% endif %}">{{
+                                pct }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if pct >= 75 %}
+                        <span class="badge badge-approved">✅ Good</span>
+                        {% elif pct >= 65 %}
+                        <span class="badge badge-pending">⚠️ Average</span>
+                        {% else %}
+                        <span class="badge badge-rejected">❌ Low</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <p>No attendance records available.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

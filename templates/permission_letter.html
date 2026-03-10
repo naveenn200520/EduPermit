@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permission Letter - {{ student.name }}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #f4f4f4;
+        }
+
+        .letter-container {
+            background-color: #fff;
+            padding: 60px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 1000px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .date {
+            text-align: right;
+            margin-bottom: 30px;
+        }
+
+        .to-section {
+            margin-bottom: 30px;
+        }
+
+        .subject {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            margin-bottom: 50px;
+            text-align: justify;
+        }
+
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 80px;
+        }
+
+        .signature-box {
+            text-align: center;
+            width: 200px;
+        }
+
+        .sig-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            color: rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            .letter-container {
+                box-shadow: none;
+                padding: 40px;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn-print no-print" onclick="window.print()">Print Letter</button>
+    <div class="letter-container">
+        <div class="watermark">OFFICIAL DOCUMENT</div>
+        <div class="header">
+            <h1>EduPermit Management System</h1>
+            <p>Formal Approval Recognition</p>
+        </div>
+
+        <div class="date">
+            Date: {{ perm.updated_at.strftime('%d %B %Y') }}
+        </div>
+
+        <div class="to-section">
+            To,<br>
+            The Department Head / Administrative Office,<br>
+            {{ student.department.name if student.department else 'Institution Department' }}
+        </div>
+
+        <div class="subject">
+            Subject: Permission for {{ perm.perm_type|title }} - Approved
+        </div>
+
+        <div class="content">
+            Respected Sir/Madam,<br><br>
+            This is to certify that <strong>{{ student.name }}</strong> (Registration No: <strong>{{ student.reg_no
+                }}</strong>),
+            a student of {{ student.year }} Year, Section {{ student.section }} in the Department of {{
+            student.department.name if student.department else 'N/A' }},
+            has been granted official permission for <strong>{{ perm.perm_type }}</strong> from <strong>{{
+                perm.from_date }}</strong>
+            to <strong>{{ perm.to_date }}</strong>.
+            <br><br>
+            The reason provided for the request is: <em>"{{ perm.reason }}"</em>.
+            <br><br>
+            This permission has been reviewed and authorized by the concerned authority through the EduPermit Portal.
+            The student is required to adhere to the institution's code of conduct during this period.
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="sig-line">Student Signature</div>
+            </div>
+            <div class="signature-box">
+                <div style="font-weight: bold;">{{ perm.staff.name if perm.staff else 'Class Advisor' }}</div>
+                <div class="sig-line">Authorized Signature</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 50px; font-size: 12px; color: #666; text-align: center;">
+            Document ID: #LP-{{ '%04d'|format(perm.id) }} | Verified via EduPermit Portal
+        </div>
+    </div>
+</body>
+
+</html>

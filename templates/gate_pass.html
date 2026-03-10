@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gate Pass – {{ student.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <style>
+        body {
+            background: #f8fafc;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gp-wrap {
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .gp-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+
+        .gate-pass-card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .gp-header {
+            background: #ffffff;
+            padding: 28px 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .gp-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .gp-header-text h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .gp-header-text p {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .gp-approved-badge {
+            margin-left: auto;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #059669;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        .gp-body {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 32px;
+        }
+
+        .gp-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gp-qr img {
+            width: 160px;
+            height: 160px;
+            border-radius: 12px;
+            border: 3px solid #e2e8f0;
+            background: #fff;
+            padding: 6px;
+        }
+
+        .gp-qr .qr-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .student-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .gp-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .gp-student-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .gp-student-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .gp-student-meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13.5px;
+            align-items: center;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        .gp-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .gp-type-leave {
+            background: rgba(249, 115, 22, 0.1);
+            color: #c2410c;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .gp-type-outing {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0369a1;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        .gp-type-od {
+            background: rgba(139, 92, 246, 0.1);
+            color: #6d28d9;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .gp-type-medical {
+            background: rgba(239, 68, 68, 0.1);
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .gp-type-special {
+            background: rgba(234, 179, 8, 0.1);
+            color: #a16207;
+            border: 1px solid rgba(234, 179, 8, 0.2);
+        }
+
+        .gp-type-emergency {
+            background: rgba(185, 28, 28, 0.1);
+            color: #7f1d1d;
+            border: 1px solid rgba(185, 28, 28, 0.2);
+        }
+
+        .gp-type-personal {
+            background: rgba(71, 85, 105, 0.1);
+            color: #1e293b;
+            border: 1px solid rgba(71, 85, 105, 0.2);
+        }
+
+        .gp-footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #475569;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .gp-actions,
+            .no-print {
+                display: none !important;
+            }
+
+            .gate-pass-card {
+                border-color: #6d28d9;
+                box-shadow: none;
+            }
+
+            .gp-body {
+                color: #111;
+            }
+
+            .detail-label {
+                color: #555;
+            }
+
+            .detail-value {
+                color: #111;
+            }
+
+            .gp-student-name {
+                color: #111;
+            }
+
+            .gp-student-meta {
+                color: #555;
+            }
+
+            .gp-footer {
+                color: #888;
+            }
+
+            .gp-approved-badge {
+                color: #059669;
+            }
+
+            .gp-header {
+                background: #1a1a35;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="gp-wrap">
+        <div class="gp-actions no-print">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Gate Pass</button>
+            <a href="javascript:history.back()" class="btn btn-outline">← Back</a>
+        </div>
+
+        <div class="gate-pass-card">
+            <!-- Header -->
+            <div class="gp-header">
+                <div class="gp-logo">🎓</div>
+                <div class="gp-header-text">
+                    <h2>EduPermit – Gate Pass</h2>
+                    <p>Official Permission Authorization Document</p>
+                </div>
+                <span class="gp-approved-badge">✅ APPROVED</span>
+            </div>
+
+            <!-- Body -->
+            <div class="gp-body">
+                <!-- QR Code -->
+                <div class="gp-qr">
+                    {% if perm.qr_code_path %}
+                    <img src="{{ url_for('static', filename=perm.qr_code_path) }}" alt="Gate Pass QR Code" />
+                    {% else %}
+                    <div
+                        style="width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:12px;border:2px dashed #64748b;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;">
+                        No QR</div>
+                    {% endif %}
+                    <div class="qr-label">Scan to verify<br />Gate Pass #{{ perm.id }}</div>
+                </div>
+
+                <!-- Details -->
+                <div class="gp-details">
+                    <div class="gp-student-header">
+                        <div class="student-avatar">{{ student.name[0] }}</div>
+                        <div>
+                            <div class="gp-student-name">{{ student.name }}</div>
+                            <div class="gp-student-meta">{{ student.reg_no }} &nbsp;|&nbsp; {{ student.department.name
+                                if student.department else '' }} &nbsp;|&nbsp; Year {{ student.year }} – Sec {{
+                                student.section }}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">Permission Type</span>
+                        <span class="detail-value">
+                            <span class="gp-type-badge gp-type-{{ perm.perm_type }}">
+                                {% if perm.perm_type == 'leave' %}🏠 Leave
+                                {% elif perm.perm_type == 'outing' %}🚶 Outing
+                                {% elif perm.perm_type == 'od' %}🎓 On Duty (OD)
+                                {% elif perm.perm_type == 'medical' %}🏥 Medical Leave
+                                {% elif perm.perm_type == 'special' %}⭐ Special Permission
+                                {% elif perm.perm_type == 'emergency' %}🚨 Emergency Leave
+                                {% else %}💼 Personal Work{% endif %}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">From Date</span>
+                        <span class="detail-value">{{ perm.from_date }}{% if perm.from_time %} at {{ perm.from_time }}{%
+                            endif %}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">To Date</span>
+                        <span class="detail-value">{{ perm.to_date }}{% if perm.to_time %} at {{ perm.to_time }}{% endif
+                            %}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reason</span>
+                        <span class="detail-value">{{ perm.reason }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Approved By</span>
+                        <span class="detail-value">{{ staff.name if staff else 'HOD' }} {% if staff %}<span
+                                style="color:#a78bfa;font-size:11px;">({{ staff.designation or 'Staff' }})</span>{%
+                            endif %}</span>
+                    </div>
+                    {% if perm.staff_remarks %}
+                    <div class="detail-row">
+                        <span class="detail-label">Remarks</span>
+                        <span class="detail-value" style="color:#94a3b8;font-style:italic;">{{ perm.staff_remarks
+                            }}</span>
+                    </div>
+                    {% endif %}
+                    {% if perm.hod_remarks %}
+                    <div class="detail-row">
+                        <span class="detail-label">HOD Remarks</span>
+                        <span class="detail-value" style="color:#94a3b8;font-style:italic;">{{ perm.hod_remarks
+                            }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-row">
+                        <span class="detail-label">Gate Pass ID</span>
+                        <span class="detail-value" style="font-family:monospace;color:#7c3aed;">#GP-{{
+                            '%04d'|format(perm.id) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="gp-footer">
+                <span>Generated: {{ perm.updated_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                <span>⚠️ This document is valid for the specified dates only. Present with College ID.</span>
+                <span>EduPermit Portal</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

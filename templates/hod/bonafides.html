@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Bonafide Requests – HOD{% endblock %}
+{% block page_title %}📄 Bonafide Requests{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Bonafide Certificate Requests</div>
+        <span style="font-size:13px;color:var(--text-muted);">{{ bonafides|length }} total</span>
+    </div>
+    {% if bonafides %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Purpose</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bonafides %}
+                <tr>
+                    <td>
+                        <div style="font-weight:600;">{{ b.student.name }}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">{{ b.student.reg_no }}</div>
+                    </td>
+                    <td style="font-size:13px;color:var(--text-secondary);">{{ b.purpose[:60] }}{% if b.purpose|length >
+                        60 %}...{% endif %}</td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ b.created_at.strftime('%d %b %Y') }}</td>
+                    <td><span class="badge badge-{{ b.status }}">{{ b.status|title }}</span></td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ b.remarks or '—' }}</td>
+                    <td>
+                        {% if b.status == 'pending' %}
+                        <button onclick="fillBonafideModal({{ b.id }},'approve');openModal('bonModal')"
+                            class="btn btn-success btn-xs">✅ Approve</button>
+                        <button onclick="fillBonafideModal({{ b.id }},'reject');openModal('bonModal')"
+                            class="btn btn-danger btn-xs">❌ Reject</button>
+                        {% else %}<span style="color:var(--text-muted);font-size:12px;">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📄</div>
+        <p>No bonafide requests.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal-overlay" id="bonModal">
+    <div class="modal">
+        <div class="modal-title">📄 Bonafide Decision</div>
+        <form method="POST" id="bonafideForm">
+            <input type="hidden" name="action" id="bonafideAction" />
+            <div class="form-group">
+                <label class="form-label">Remarks</label>
+                <textarea name="remarks" class="form-control" rows="3" placeholder="Optional remarks..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('bonModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

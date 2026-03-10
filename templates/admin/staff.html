@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Manage Staff{% endblock %}
+{% block page_title %}👩‍🏫 Manage Staff & HOD{% endblock %}
+{% block content %}
+<div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="color:var(--text-muted);">{{ staff_list|length }} staff members</span>
+    <button onclick="openModal('addStaffModal')" class="btn btn-primary">➕ Add Staff / HOD</button>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Staff & HOD List</div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in staff_list %}
+                <tr>
+                    <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                    <td style="font-weight:600;">{{ s.name }}</td>
+                    <td><span class="badge badge-{{ 'info' if s.role == 'staff' else 'approved' }}">{{ s.role|upper
+                            }}</span></td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ s.department.code if s.department else '—' }}
+                    </td>
+                    <td style="font-size:12px;color:var(--text-secondary);">{{ s.designation or '—' }}</td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ s.email }}</td>
+                    <td><span class="badge badge-{{ 'approved' if s.is_active else 'rejected' }}">{{ 'Active' if
+                            s.is_active else 'Inactive' }}</span></td>
+                    <td>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="action" value="toggle" />
+                            <input type="hidden" name="user_id" value="{{ s.id }}" />
+                            <button type="submit" class="btn btn-outline btn-xs">{{ '🔴 Deactivate' if s.is_active else
+                                '🟢 Activate' }}</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal-overlay" id="addStaffModal">
+    <div class="modal admin-modal" style="max-width:560px;">
+        <div class="admin-modal-header">
+            <div class="admin-modal-icon">👩‍🏫</div>
+            <h3 class="admin-modal-title">Create New Staff Member</h3>
+            <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 8px;">Fill in the details to register a
+                new staff or HOD</p>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="action" value="add" />
+            <div class="admin-modal-body">
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">Full Name</label><input type="text" name="name"
+                            class="form-control" placeholder="e.g. Dr. Jane Smith" required /></div>
+                    <div class="form-group"><label class="form-label">Email Address</label><input type="email"
+                            name="email" class="form-control" placeholder="jane.smith@college.edu" required /></div>
+                    <div class="form-group"><label class="form-label">System Role</label>
+                        <select name="staff_role" class="form-control" required>
+                            <option value="staff">Staff / Class Advisor</option>
+                            <option value="hod">Head of Department (HOD)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Department</label>
+                        <select name="dept_id" class="form-control" required>
+                            {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Designation</label><input type="text"
+                            name="designation" class="form-control" placeholder="e.g. Assistant Professor" /></div>
+                    <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" name="phone"
+                            class="form-control" placeholder="+1 234 567 8900" /></div>
+                    <div class="form-group" style="grid-column:span 2;"><label class="form-label">Initial
+                            Password</label><input type="text" name="password" class="form-control" value="staff123" />
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')"
+                    style="padding:10px 24px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding:10px 24px;">✨ Create Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

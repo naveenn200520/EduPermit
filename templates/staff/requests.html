@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Student Requests{% endblock %}
+{% block page_title %}📋 Student Requests{% endblock %}
+{% block content %}
+<!-- Filter Tabs -->
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    {% for s in ['all','pending','approved','rejected','forwarded'] %}
+    <a href="{{ url_for('staff_requests', status=s) }}"
+        class="btn {% if status_filter == s %}btn-primary{% else %}btn-outline{% endif %} btn-sm">
+        {{ s|title }}
+    </a>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            {% if status_filter == 'all' %}All Requests{% else %}{{ status_filter|title }} Requests{% endif %}
+        </div>
+        <span style="font-size:13px;color:var(--text-muted);">{{ requests|length }} records</span>
+    </div>
+
+    {% if requests %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                <tr>
+                    <td>
+                        <div style="font-weight:600;font-size:13.5px;">{{ r.student.name }}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">{{ r.student.reg_no }} · Yr {{
+                            r.student.year }}{{ r.student.section }}</div>
+                    </td>
+                    <td><span class="badge badge-{{ r.perm_type }}">{{ r.perm_type|title }}</span></td>
+                    <td style="font-size:12px;">{{ r.from_date }}</td>
+                    <td style="font-size:12px;">{{ r.to_date }}</td>
+                    <td style="font-size:12px;color:var(--text-secondary);max-width:160px;">{{ r.reason[:70] }}{% if
+                        r.reason|length > 70 %}...{% endif %}</td>
+                    <td>
+                        <span class="badge badge-{{ r.status }}">{{ r.status|title }}</span>
+                        {% if r.forwarded_to_hod %}<br /><span style="font-size:10px;color:var(--teal);">↑ HOD</span>{%
+                        endif %}
+                    </td>
+                    <td style="font-size:11px;color:var(--text-muted);">{{ r.created_at.strftime('%d %b') }}</td>
+                    <td>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            {% if r.status == 'pending' %}
+                            <button onclick="fillRemarkModal({{ r.id }}, 'approve');openModal('remarkModal')"
+                                class="btn btn-success btn-xs">✅ Approve</button>
+                            <button onclick="fillRemarkModal({{ r.id }}, 'reject');openModal('remarkModal')"
+                                class="btn btn-danger btn-xs">❌ Reject</button>
+                            <button onclick="fillRemarkModal({{ r.id }}, 'forward');openModal('remarkModal')"
+                                class="btn btn-warning btn-xs">🔄 HOD</button>
+                            {% elif r.status == 'approved' and r.qr_code_path %}
+                            <a href="{{ url_for('gate_pass', perm_id=r.id) }}" class="btn btn-teal btn-xs"
+                                target="_blank">🎫 Gate Pass</a>
+                            {% else %}
+                            <span style="font-size:12px;color:var(--text-muted);">—</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No {{ status_filter }} requests.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Remark Modal -->
+<div class="modal-overlay" id="remarkModal">
+    <div class="modal">
+        <div class="modal-title">📝 Add Remarks & Confirm Action</div>
+        <form method="POST" id="remarkForm">
+            <input type="hidden" name="action" id="remarkAction" />
+            <div class="form-group">
+                <label class="form-label">Remarks for Student</label>
+                <textarea name="remarks" class="form-control" rows="3"
+                    placeholder="Enter your remarks (optional)..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('remarkModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">✔ Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

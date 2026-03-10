@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Request History{% endblock %}
+{% block page_title %}📋 Permission History{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">All Permission Requests</div>
+        <a href="{{ url_for('student_apply') }}" class="btn btn-primary btn-sm">➕ New Request</a>
+    </div>
+    {% if perms %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th>Gate Pass</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in perms %}
+                <tr>
+                    <td><span class="badge badge-{{ p.perm_type }}">{{ p.perm_type|title }}</span></td>
+                    <td style="font-size:13px;">{{ p.from_date }}</td>
+                    <td style="font-size:13px;">{{ p.to_date }}</td>
+                    <td style="font-size:13px;max-width:180px;color:var(--text-secondary);">{{ p.reason[:60] }}{% if
+                        p.reason|length > 60 %}...{% endif %}</td>
+                    <td><span class="badge badge-{{ p.status }}">{{ p.status|title }}</span></td>
+                    <td style="font-size:12px;color:var(--text-muted);">
+                        {% if p.staff_remarks %}✏️ {{ p.staff_remarks[:40] }}{% endif %}
+                        {% if p.hod_remarks %}<br />👨‍💼 {{ p.hod_remarks[:40] }}{% endif %}
+                        {% if not p.staff_remarks and not p.hod_remarks %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if p.status == 'approved' and p.qr_code_path %}
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <a href="{{ url_for('gate_pass', perm_id=p.id) }}" class="btn btn-success btn-xs"
+                                target="_blank">🎫 Gate Pass</a>
+                            <a href="{{ url_for('view_permission_letter', perm_id=p.id) }}"
+                                class="btn btn-primary btn-xs" style="background: #4f46e5;" target="_blank">📜
+                                Letter</a>
+                        </div>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No permission requests found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

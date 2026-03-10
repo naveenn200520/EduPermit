@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard – EduPermit{% endblock %}
+{% block page_title %}📊 Student Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-icon">📝</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total Permissions</div>
+        </div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending }}</div>
+            <div class="stat-label">Pending Approvals</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ approved }}</div>
+            <div class="stat-label">Approved Requests</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ rejected }}</div>
+            <div class="stat-label">Rejected Requests</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="{{ url_for('student_apply') }}" class="btn btn-primary">➕ Apply Permission</a>
+    <a href="{{ url_for('student_bonafide') }}" class="btn btn-teal">📄 Request Bonafide</a>
+    <a href="{{ url_for('student_attendance') }}" class="btn btn-outline">📅 View Attendance</a>
+</div>
+
+<div class="grid-2">
+    <!-- Recent Requests -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Recent Requests</div>
+                <div class="card-subtitle">Your latest permission activity</div>
+            </div>
+            <a href="{{ url_for('student_history') }}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        {% if recent %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in recent %}
+                    <tr>
+                        <td><span class="badge badge-{{ p.perm_type }}">{{ p.perm_type|title }}</span></td>
+                        <td style="font-size:12px;color:var(--text-muted);">{{ p.from_date }}<br />{{ p.to_date }}</td>
+                        <td><span class="badge badge-{{ p.status }}">{{ p.status|title }}</span></td>
+                        <td>
+                            {% if p.status == 'approved' and p.qr_code_path %}
+                            <a href="{{ url_for('gate_pass', perm_id=p.id) }}" class="btn btn-success btn-xs"
+                                target="_blank">🎫 Gate Pass</a>
+                            {% else %}
+                            <span style="font-size:12px;color:var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>No requests yet. <a href="{{ url_for('student_apply') }}" style="color:var(--accent-light)">Apply now
+                    →</a></p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Attendance Summary + Donut Chart -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Attendance Overview</div>
+                    <div class="card-subtitle">Subject-wise attendance %</div>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="attChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Profile Quick info -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">My Profile</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div
+                        style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">
+                        {{ user.name[0] }}</div>
+                    <div>
+                        <div style="font-weight:700;">{{ user.name }}</div>
+                        <div style="font-size:12px;color:var(--text-muted);">{{ user.reg_no }}</div>
+                    </div>
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);">
+                    <span>🏢 {{ user.department.name if user.department else 'N/A' }}</span> &nbsp;|&nbsp;
+                    <span>📅 Year {{ user.year }} – Sec {{ user.section }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const attData = [{% for a in attendance %}{ { a.percentage } }, {% endfor %}];
+    const attLabels = [{% for a in attendance %}"{{ a.subject[:20] }}", {% endfor %}];
+
+    if (attData.length) {
+        const colors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#f97316'];
+        createDonutChart('attChart', attLabels, attData, colors.slice(0, attData.length));
+    }
+</script>
+{% endblock %}
