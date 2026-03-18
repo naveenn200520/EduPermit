@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Gate Pass Scanner – EduPermit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px;
+            color: #f1f5f9;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .topbar .brand-text h3 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .topbar .brand-text span {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ── Main card ── */
+        .scan-card {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+        }
+
+        .scan-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .scan-title h2 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a5b4fc, #67e8f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scan-title p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        /* ── Camera viewport ── */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #0f172a;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            margin-bottom: 20px;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        canvas#overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* Hidden canvas for processing */
+        #scan-canvas {
+            display: none;
+        }
+
+        /* Scanning crosshair overlay */
+        .scan-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55%;
+            height: 55%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .scan-frame::before,
+        .scan-frame::after,
+        .sf-bl,
+        .sf-br {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-color: #6366f1;
+            border-style: solid;
+        }
+
+        .scan-frame::before {
+            top: 0;
+            left: 0;
+            border-width: 3px 0 0 3px;
+            border-radius: 4px 0 0 0;
+        }
+
+        .scan-frame::after {
+            top: 0;
+            right: 0;
+            border-width: 3px 3px 0 0;
+            border-radius: 0 4px 0 0;
+        }
+
+        .sf-bl {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 3px 3px;
+            border-radius: 0 0 0 4px;
+        }
+
+        .sf-br {
+            bottom: 0;
+            right: 0;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 4px 0;
+        }
+
+        /* Animated scan line */
+        .scan-line {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            top: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6366f1, #06b6d4, transparent);
+            border-radius: 2px;
+            animation: scanMove 2s linear infinite;
+            z-index: 11;
+        }
+
+        @keyframes scanMove {
+            0% {
+                top: 10%;
+            }
+
+            50% {
+                top: 90%;
+            }
+
+            100% {
+                top: 10%;
+            }
+        }
+
+        /* placeholder when camera is off */
+        .camera-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #64748b;
+            font-size: 14px;
+            z-index: 5;
+            background: #0f172a;
+        }
+
+        .camera-placeholder .cam-icon {
+            font-size: 52px;
+        }
+
+        /* ── Status pill ── */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .status-pill .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #64748b;
+            flex-shrink: 0;
+            animation: none;
+        }
+
+        .status-pill.scanning .dot {
+            background: #22c55e;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        .status-pill.success {
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .status-pill.success .dot {
+            background: #22c55e;
+            animation: none;
+        }
+
+        .status-pill.error {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .status-pill.error .dot {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.75);
+            }
+        }
+
+        /* ── Buttons ── */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 13px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.07);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ── Manual entry fallback ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 20px;
+            color: #475569;
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .manual-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .manual-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #f1f5f9;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .manual-input::placeholder {
+            color: #475569;
+        }
+
+        .manual-input:focus {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.07);
+        }
+
+        .btn-go {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-go:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ── Result popup ── */
+        .result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .result-overlay.show {
+            display: flex;
+        }
+
+        .result-box {
+            background: #1e1b4b;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .result-icon {
+            font-size: 52px;
+            margin-bottom: 12px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-msg {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .result-url {
+            font-size: 12px;
+            color: #6366f1;
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .result-actions .btn {
+            flex: 1;
+        }
+
+        /* Camera select */
+        .cam-select-wrap {
+            margin-bottom: 16px;
+        }
+
+        .cam-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #f1f5f9;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .cam-select option {
+            background: #1e293b;
+        }
+
+        footer {
+            margin-top: 28px;
+            font-size: 12px;
+            color: #334155;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top bar -->
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-icon">🎓</div>
+            <div class="brand-text">
+                <h3>EduPermit</h3>
+                <span>Gate Pass Scanner</span>
+            </div>
+        </div>
+        <a href="javascript:history.back()" class="back-btn">← Back</a>
+    </div>
+
+    <!-- Main card -->
+    <div class="scan-card">
+        <div class="scan-title">
+            <h2>📷 QR Gate Pass Scanner</h2>
+            <p>Point your camera at the student's gate pass QR code to verify instantly</p>
+        </div>
+
+        <!-- Camera selector (populated via JS) -->
+        <div class="cam-select-wrap" id="camSelectWrap" style="display:none;">
+            <select class="cam-select" id="cameraSelect" title="Select Camera"></select>
+        </div>
+
+        <!-- Camera viewport -->
+        <div class="camera-container" id="cameraContainer">
+            <div class="camera-placeholder" id="placeholder">
+                <div class="cam-icon">📷</div>
+                <div>Camera not started</div>
+                <div style="font-size:12px;">Press "Start Scanner" to begin</div>
+            </div>
+            <video id="video" playsinline muted autoplay></video>
+            <!-- Actual canvas for drawing overlay -->
+            <canvas id="overlay-canvas"></canvas>
+            <!-- Crosshair -->
+            <div class="scan-frame" id="scanFrame" style="display:none;">
+                <div class="sf-bl"></div>
+                <div class="sf-br"></div>
+                <div class="scan-line"></div>
+            </div>
+        </div>
+
+        <!-- Hidden canvas for frame capture -->
+        <canvas id="scan-canvas"></canvas>
+
+        <!-- Status pill -->
+        <div class="status-pill" id="statusPill">
+            <div class="dot"></div>
+            <span id="statusText">Scanner not started</span>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-row">
+            <button class="btn btn-primary" id="startBtn" onclick="startScanner()">▶ Start Scanner</button>
+            <button class="btn btn-secondary" id="stopBtn" onclick="stopScanner()" disabled>⬛ Stop</button>
+        </div>
+
+        <!-- Manual entry -->
+        <div class="divider">or enter Gate Pass ID manually</div>
+        <div class="manual-row">
+            <input class="manual-input" type="number" id="manualId" placeholder="e.g. 1, 2, 3 …" min="1" />
+            <button class="btn-go" onclick="manualVerify()">→ Verify</button>
+        </div>
+    </div>
+
+    <footer>EduPermit Portal &nbsp;•&nbsp; QR Gate Pass Verification System</footer>
+
+    <!-- Result overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-box">
+            <div class="result-icon" id="resIcon">✅</div>
+            <div class="result-title" id="resTitle">QR Code Detected!</div>
+            <div class="result-msg" id="resMsg">Redirecting to verification page…</div>
+            <div class="result-url" id="resUrl"></div>
+            <div class="result-actions">
+                <button class="btn btn-primary" id="resGoBtn" onclick="goToResult()">🔗 Open Verify Page</button>
+                <button class="btn btn-secondary" onclick="closeResult()">✕ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- jsQR CDN (works fully offline-compatible after first load) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script>
+        let stream = null;
+        let scanning = false;
+        let scanLoop = null;
+        let foundUrl = '';
+        let lastScanTime = 0;
+        const SCAN_COOLDOWN = 2000; // ms between scans
+
+        const video = document.getElementById('video');
+        const scanCanvas = document.getElementById('scan-canvas');
+        const overlayCanvas = document.getElementById('overlay-canvas');
+        const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+        const octx = overlayCanvas.getContext('2d');
+        const placeholder = document.getElementById('placeholder');
+        const scanFrame = document.getElementById('scanFrame');
+        const statusPill = document.getElementById('statusPill');
+        const statusText = document.getElementById('statusText');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        // ─── Camera selection ───────────────────────────────────────
+        async function populateCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cams = devices.filter(d => d.kind === 'videoinput');
+                const wrap = document.getElementById('camSelectWrap');
+                const sel = document.getElementById('cameraSelect');
+                if (cams.length > 1) {
+                    sel.innerHTML = '';
+                    cams.forEach((cam, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = cam.deviceId;
+                        opt.textContent = cam.label || `Camera ${i + 1}`;
+                        // Prefer back/environment camera by default
+                        if (cam.label.toLowerCase().includes('back') ||
+                            cam.label.toLowerCase().includes('rear') ||
+                            cam.label.toLowerCase().includes('environment')) {
+                            opt.selected = true;
+                        }
+                        sel.appendChild(opt);
+                    });
+                    wrap.style.display = 'block';
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        // ─── Start scanner ──────────────────────────────────────────
+        async function startScanner() {
+            setStatus('requesting', '🔄 Requesting camera permission…');
+            try {
+                const sel = document.getElementById('cameraSelect');
+                const deviceId = sel.value || undefined;
+                const constraints = {
+                    video: deviceId
+                        ? { deviceId: { exact: deviceId }, facingMode: { ideal: 'environment' } }
+                        : { facingMode: { ideal: 'environment' } }
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.play();
+
+                // Populate camera list after permission granted
+                await populateCameras();
+
+                video.addEventListener('loadedmetadata', () => {
+                    scanCanvas.width = video.videoWidth;
+                    scanCanvas.height = video.videoHeight;
+                    overlayCanvas.width = video.videoWidth;
+                    overlayCanvas.height = video.videoHeight;
+                    placeholder.style.display = 'none';
+                    scanFrame.style.display = 'block';
+                    scanning = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    setStatus('scanning', '🟢 Scanning for QR code…');
+                    scanLoop = requestAnimationFrame(tick);
+                });
+            } catch (err) {
+                let msg = 'Camera permission denied.';
+                if (err.name === 'NotFoundError') msg = 'No camera found on this device.';
+                if (err.name === 'NotAllowedError') msg = 'Camera access was denied. Please allow camera access.';
+                if (err.name === 'NotReadableError') msg = 'Camera is already in use by another app.';
+                setStatus('error', '❌ ' + msg);
+            }
+        }
+
+        // ─── Stop scanner ───────────────────────────────────────────
+        function stopScanner() {
+            scanning = false;
+            if (scanLoop) cancelAnimationFrame(scanLoop);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            video.srcObject = null;
+            placeholder.style.display = 'flex';
+            scanFrame.style.display = 'none';
+            octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            setStatus('idle', 'Scanner stopped');
+        }
+
+        // ─── Scan loop ──────────────────────────────────────────────
+        function tick() {
+            if (!scanning) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                ctx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert'
+                });
+                if (code) {
+                    const now = Date.now();
+                    drawQRBox(code.location);
+                    if (now - lastScanTime > SCAN_COOLDOWN) {
+                        lastScanTime = now;
+                        handleQR(code.data);
+                    }
+                } else {
+                    octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                }
+            }
+            scanLoop = requestAnimationFrame(tick);
+        }
+
+        // Draw highlight box around detected QR
+        function drawQRBox(loc) {
+            octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            octx.beginPath();
+            octx.moveTo(loc.topLeftCorner.x, loc.topLeftCorner.y);
+            octx.lineTo(loc.topRightCorner.x, loc.topRightCorner.y);
+            octx.lineTo(loc.bottomRightCorner.x, loc.bottomRightCorner.y);
+            octx.lineTo(loc.bottomLeftCorner.x, loc.bottomLeftCorner.y);
+            octx.closePath();
+            octx.strokeStyle = '#22c55e';
+            octx.lineWidth = Math.max(3, overlayCanvas.width / 100);
+            octx.stroke();
+            octx.fillStyle = 'rgba(34, 197, 94, 0.12)';
+            octx.fill();
+        }
+
+        // ─── Handle detected QR data ─────────────────────────────────
+        function handleQR(data) {
+            // Accept: full URL containing /verify/ OR just a plain number
+            const verifyPattern = /\/verify\/(\d+)/;
+            const match = data.match(verifyPattern);
+
+            if (match) {
+                const permId = match[1];
+                const verifyUrl = '/verify/' + permId;
+                foundUrl = verifyUrl;
+                setStatus('success', '✅ QR Code detected! Permission #' + permId);
+                showResult(verifyUrl, permId);
+            } else if (/^\d+$/.test(data.trim())) {
+                // Plain number – treat as permission ID
+                const permId = data.trim();
+                foundUrl = '/verify/' + permId;
+                setStatus('success', '✅ ID detected: #' + permId);
+                showResult(foundUrl, permId);
+            } else {
+                setStatus('error', '⚠️ Invalid QR – not an EduPermit gate pass');
+                // Let it retry automatically
+                setTimeout(() => {
+                    if (scanning) setStatus('scanning', '🟢 Scanning for QR code…');
+                }, 2500);
+            }
+        }
+
+        // ─── Show result overlay ─────────────────────────────────────
+        function showResult(url, permId) {
+            document.getElementById('resIcon').textContent = '✅';
+            document.getElementById('resTitle').textContent = 'Gate Pass QR Detected!';
+            document.getElementById('resMsg').textContent =
+                'Permission #' + permId + ' found. Click below to open the verification page.';
+            document.getElementById('resUrl').textContent = window.location.origin + url;
+            document.getElementById('resultOverlay').classList.add('show');
+            // Auto-redirect after 3 seconds
+            setTimeout(() => { window.location.href = url; }, 3000);
+        }
+
+        function goToResult() {
+            if (foundUrl) window.location.href = foundUrl;
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+            foundUrl = '';
+            if (scanning) setStatus('scanning', '🟢 Scanning for QR code…');
+        }
+
+        // ─── Manual entry ─────────────────────────────────────────────
+        function manualVerify() {
+            const val = document.getElementById('manualId').value.trim();
+            if (!val || isNaN(val) || parseInt(val) < 1) {
+                alert('Please enter a valid Gate Pass ID (positive number).');
+                return;
+            }
+            window.location.href = '/verify/' + parseInt(val);
+        }
+
+        // ─── Enter key on manual input ────────────────────────────────
+        document.getElementById('manualId').addEventListener('keydown', e => {
+            if (e.key === 'Enter') manualVerify();
+        });
+
+        // ─── Camera switch ─────────────────────────────────────────────
+        document.getElementById('cameraSelect').addEventListener('change', async () => {
+            if (scanning) {
+                stopScanner();
+                await startScanner();
+            }
+        });
+
+        // ─── Status helper ─────────────────────────────────────────────
+        function setStatus(type, text) {
+            statusPill.className = 'status-pill';
+            statusText.textContent = text;
+            if (type === 'scanning') statusPill.classList.add('scanning');
+            else if (type === 'success') statusPill.classList.add('success');
+            else if (type === 'error') statusPill.classList.add('error');
+        }
+    </script>
+</body>
+
+</html>

@@ -52,7 +52,7 @@ def login_required(role=None):
 
 def get_current_user():
     if 'user_id' in session:
-        return User.query.get(session['user_id'])
+        return db.session.get(User, session['user_id'])
     return None
 
 
@@ -168,7 +168,7 @@ def student_bonafide():
 @login_required(role='student')
 def view_bonafide(bon_id):
     user = get_current_user()
-    bon = Bonafide.query.get_or_404(bon_id)
+    bon = db.get_or_404(Bonafide, bon_id)
     
     # Security: Check if user has permission to view this certificate
     if user.role == 'student' and bon.student_id != user.id:
@@ -179,7 +179,7 @@ def view_bonafide(bon_id):
         flash('This certificate is not yet approved.', 'warning')
         return redirect(url_for('student_bonafide'))
         
-    student = User.query.get(bon.student_id)
+    student = db.session.get(User, bon.student_id)
     return render_template('bonafide_certificate.html', bonafide=bon, student=student)
 
 
@@ -205,7 +205,7 @@ def student_history():
 @login_required(role='student')
 def view_permission_letter(perm_id):
     user = get_current_user()
-    perm = Permission.query.get_or_404(perm_id)
+    perm = db.get_or_404(Permission, perm_id)
     
     # Security: Check if user has permission to view this letter
     if user.role == 'student' and perm.student_id != user.id:
@@ -299,7 +299,7 @@ def staff_requests():
 @login_required(role='staff')
 def staff_approve(perm_id):
     user = get_current_user()
-    perm = Permission.query.get_or_404(perm_id)
+    perm = db.get_or_404(Permission, perm_id)
     action = request.form.get('action')
     remarks = request.form.get('remarks', '')
 
@@ -387,7 +387,7 @@ def hod_approvals():
 @login_required(role='hod')
 def hod_approve(perm_id):
     user = get_current_user()
-    perm = Permission.query.get_or_404(perm_id)
+    perm = db.get_or_404(Permission, perm_id)
     action = request.form.get('action')
     remarks = request.form.get('remarks', '')
     perm.hod_remarks = remarks
@@ -420,7 +420,7 @@ def hod_bonafides():
 @login_required(role='hod')
 def hod_approve_bonafide(bon_id):
     user = get_current_user()
-    bon = Bonafide.query.get_or_404(bon_id)
+    bon = db.get_or_404(Bonafide, bon_id)
     action = request.form.get('action')
     bon.remarks = request.form.get('remarks', '')
     bon.approved_by = user.id
@@ -493,13 +493,13 @@ def admin_students():
             db.session.commit()
             flash(f'Student {s.name} added successfully!', 'success')
         elif action == 'delete':
-            u = User.query.get(int(request.form['user_id']))
+            u = db.session.get(User, int(request.form['user_id']))
             if u:
                 u.is_active = False
                 db.session.commit()
                 flash('Student deactivated.', 'warning')
         elif action == 'toggle':
-            u = User.query.get(int(request.form['user_id']))
+            u = db.session.get(User, int(request.form['user_id']))
             if u:
                 u.is_active = not u.is_active
                 db.session.commit()
@@ -531,7 +531,7 @@ def admin_staff():
             db.session.commit()
             flash(f'{s.role.upper()} {s.name} added successfully!', 'success')
         elif action == 'toggle':
-            u = User.query.get(int(request.form['user_id']))
+            u = db.session.get(User, int(request.form['user_id']))
             if u:
                 u.is_active = not u.is_active
                 db.session.commit()
@@ -589,7 +589,7 @@ def admin_reports():
 
 @app.route('/gate_pass/<int:perm_id>')
 def gate_pass(perm_id):
-    perm = Permission.query.get_or_404(perm_id)
+    perm = db.get_or_404(Permission, perm_id)
     student = perm.student
     staff = perm.staff
     return render_template('gate_pass.html', perm=perm, student=student, staff=staff)
@@ -609,9 +609,16 @@ def mark_notifications_read():
 # ─── Public Verification Route ────────────────────────────────────────────────
 @app.route('/verify/<int:perm_id>')
 def verify_pass(perm_id):
-    perm = Permission.query.get_or_404(perm_id)
+    perm = db.get_or_404(Permission, perm_id)
     # The view does not require a login, it is public for scanning by guards
     return render_template('verify_pass.html', perm=perm)
+
+
+# ─── QR Scanner Route ─────────────────────────────────────────────────────────
+@app.route('/scan')
+def qr_scanner():
+    """Public page that lets guards scan a gate pass QR code with their camera."""
+    return render_template('qr_scanner.html')
 
 
 if __name__ == '__main__':

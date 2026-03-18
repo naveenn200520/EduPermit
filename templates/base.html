@@ -64,6 +64,7 @@
       </a>
       <a class="nav-item" href="{{ url_for('staff_students') }}"><span class="nav-icon">👥</span> Student List</a>
       <a class="nav-item" href="{{ url_for('staff_attendance') }}"><span class="nav-icon">📅</span> Attendance</a>
+      <a class="nav-item" href="{{ url_for('qr_scanner') }}"><span class="nav-icon">📷</span> QR Scanner</a>
 
       {% elif role == 'hod' %}
       <div class="nav-label">Main Menu</div>
@@ -73,6 +74,7 @@
       </a>
       <a class="nav-item" href="{{ url_for('hod_bonafides') }}"><span class="nav-icon">📄</span> Bonafide Requests</a>
       <a class="nav-item" href="{{ url_for('hod_reports') }}"><span class="nav-icon">📈</span> Reports & Analytics</a>
+      <a class="nav-item" href="{{ url_for('qr_scanner') }}"><span class="nav-icon">📷</span> QR Scanner</a>
 
       {% elif role == 'admin' %}
       <div class="nav-label">System</div>
@@ -81,6 +83,7 @@
       <a class="nav-item" href="{{ url_for('admin_staff') }}"><span class="nav-icon">👩‍🏫</span> Staff & HOD</a>
       <a class="nav-item" href="{{ url_for('admin_departments') }}"><span class="nav-icon">🏢</span> Departments</a>
       <a class="nav-item" href="{{ url_for('admin_reports') }}"><span class="nav-icon">📈</span> Reports</a>
+      <a class="nav-item" href="{{ url_for('qr_scanner') }}"><span class="nav-icon">📷</span> QR Scanner</a>
       {% endif %}
 
       <div class="nav-label">Account</div>

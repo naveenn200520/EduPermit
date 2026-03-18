@@ -1,61 +1,50 @@
+# === Python ===
 __pycache__/
-*.pyc
 *.py[cod]
-*$py.class
+*.pyo
+*.pyd
+*.pyc
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
-.venv
-env/
+# === Virtual Environment ===
+.venv/
 venv/
+env/
 ENV/
+.env.local
+.env.production
 
-# Flask
+# === Database (local only - use PostgreSQL in production) ===
 instance/
-.webassets-cache
-
-# Database
 *.db
 *.sqlite
 *.sqlite3
 
-# Environment Variables
-.env
-.env.local
-.env.production
+# === Uploaded files & QR codes (not version controlled) ===
+static/uploads/
+static/qrcodes/
 
-# IDE
+# === IDE & Editor ===
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# === OS files ===
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Logs
+# === Logs ===
 *.log
+logs/
 
-# Uploads
-static/uploads/profiles/*
-static/qrcodes/*
-!static/uploads/profiles/.gitkeep
-!static/qrcodes/.gitkeep
+# === Distribution / Build ===
+dist/
+build/
+*.egg-info/
+
+# === Secrets ===
+.env
+secrets.json

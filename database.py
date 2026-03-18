@@ -121,7 +121,7 @@ def seed():
             db.session.add(Notification(user_id=uid, message=msg, notif_type=ntype))
 
         db.session.commit()
-        print("✅ Database seeded successfully!")
+        print("Database seeded successfully!")
         print("\nDemo Credentials:")
         print("  Student : 22CS001 / student123")
         print("  Staff   : staff@college.edu / staff123")
