@@ -94,7 +94,7 @@
             borderRadius: 6
   }, {
         label: 'Students',
-            data: [{% for d in dept_data %} { { d.students } }, {% endfor %}],
+            data: [{% for d in dept_data %}{{ d.students }}, {% endfor %}],
     backgroundColor: 'rgba(6,182,212,0.7)',
         borderRadius: 6
   }]

@@ -132,7 +132,7 @@
 
 {% block scripts %}
 <script>
-    const attData = [{% for a in attendance %}{ { a.percentage } }, {% endfor %}];
+    const attData = [{% for a in attendance %}{{ a.percentage }}, {% endfor %}];
     const attLabels = [{% for a in attendance %}"{{ a.subject[:20] }}", {% endfor %}];
 
     if (attData.length) {
