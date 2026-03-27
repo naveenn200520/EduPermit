@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import secrets
 from werkzeug.utils import secure_filename
+from sqlalchemy.exc import IntegrityError
 
 
 def create_app():
@@ -84,7 +85,10 @@ def login():
         if role == 'student':
             user = User.query.filter_by(reg_no=identifier, role='student').first()
         else:
-            user = User.query.filter_by(email=identifier, role=role).first()
+            if identifier:
+                user = User.query.filter(
+                    User.email == identifier, User.role == role
+                ).first()
 
         if user and user.check_password(password) and user.is_active:
             session['user_id'] = user.id
@@ -247,9 +251,10 @@ def profile():
                     user.photo = filename
 
         user.name = request.form.get('name', user.name)
-        if user.role != 'student':
-            user.email = request.form.get('email', user.email)
-            
+        new_email = request.form.get('email', '').strip()
+        if new_email:
+            user.email = new_email
+        
         user.phone = request.form.get('phone', user.phone)
         if request.form.get('new_password'):
             user.set_password(request.form['new_password'])
@@ -481,17 +486,25 @@ def admin_students():
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'add':
+            # Check for duplicate reg_no
+            if User.query.filter_by(reg_no=request.form['reg_no']).first():
+                flash(f"Register number {request.form['reg_no']} already exists!", 'danger')
+                return redirect(url_for('admin_students'))
             s = User(
                 name=request.form['name'], reg_no=request.form['reg_no'],
-                email=request.form['email'], role='student',
+                email=request.form.get('email') or None, role='student',
                 dept_id=int(request.form['dept_id']),
                 year=int(request.form['year']), section=request.form['section'],
                 phone=request.form.get('phone')
             )
             s.set_password(request.form.get('password', 'student123'))
             db.session.add(s)
-            db.session.commit()
-            flash(f'Student {s.name} added successfully!', 'success')
+            try:
+                db.session.commit()
+                flash(f'Student {s.name} added successfully!', 'success')
+            except IntegrityError:
+                db.session.rollback()
+                flash('Failed to add student. Email or register number may already exist.', 'danger')
         elif action == 'delete':
             u = db.session.get(User, int(request.form['user_id']))
             if u:
@@ -519,8 +532,12 @@ def admin_staff():
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'add':
+            # Check for duplicate email
+            if request.form.get('email') and User.query.filter_by(email=request.form['email']).first():
+                flash(f"Email {request.form['email']} already exists!", 'danger')
+                return redirect(url_for('admin_staff'))
             s = User(
-                name=request.form['name'], email=request.form['email'],
+                name=request.form['name'], email=request.form.get('email') or None,
                 role=request.form['staff_role'],
                 dept_id=int(request.form['dept_id']),
                 designation=request.form.get('designation'),
@@ -528,8 +545,12 @@ def admin_staff():
             )
             s.set_password(request.form.get('password', 'staff123'))
             db.session.add(s)
-            db.session.commit()
-            flash(f'{s.role.upper()} {s.name} added successfully!', 'success')
+            try:
+                db.session.commit()
+                flash(f'{s.role.upper()} {s.name} added successfully!', 'success')
+            except IntegrityError:
+                db.session.rollback()
+                flash('Failed to add staff. Email may already be in use.', 'danger')
         elif action == 'toggle':
             u = db.session.get(User, int(request.form['user_id']))
             if u:
