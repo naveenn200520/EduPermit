@@ -20,16 +20,15 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Configure upload folder for profile photos
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'profiles')
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-    
     db.init_app(app)
     return app
 
 
 app = create_app()
+
+# Create tables on startup (needed for Vercel where __main__ doesn't run)
+with app.app_context():
+    db.create_all()
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -646,6 +645,18 @@ def serve_qr(perm_id):
         return "QR Code not available", 404
     qr_io = generate_gate_pass_qr(perm, request.host_url)
     return send_file(qr_io, mimetype='image/png')
+
+
+@app.route('/seed')
+def seed_database():
+    """One-time database seeder for production. Visit /seed after first deploy."""
+    # Check if already seeded
+    if User.query.first():
+        return jsonify({"status": "Database already has data. Skipping seed."}), 200
+    
+    from database import seed_data
+    seed_data(app)
+    return jsonify({"status": "Database seeded successfully! You can now log in."}), 200
 
 
 if __name__ == '__main__':
