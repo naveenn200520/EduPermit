@@ -13,8 +13,8 @@ def create_app():
     # Configuration for production/development
     app.secret_key = os.environ.get('SECRET_KEY', 'college_mgmt_secret_2024_xK9mP')
     
-    # Database configuration
-    database_url = os.environ.get('DATABASE_URL', 'sqlite:///college.db')
+    # Database configuration - check multiple env var names
+    database_url = os.environ.get('DATABASE_URL') or os.environ.get('STORAGE_URL') or os.environ.get('POSTGRES_URL') or 'sqlite:///college.db'
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
