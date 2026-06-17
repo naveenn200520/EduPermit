@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -22,8 +22,8 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # student, staff, hod, admin
     dept_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
     phone = db.Column(db.String(15), nullable=True)
-    photo = db.Column(db.String(200), nullable=True, default='default.png')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    photo = db.Column(db.Text, nullable=True, default='default.png')
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_active = db.Column(db.Boolean, default=True)
 
     # Student specific
@@ -60,8 +60,8 @@ class Permission(db.Model):
     hod_remarks = db.Column(db.Text, nullable=True)
     forwarded_to_hod = db.Column(db.Boolean, default=False)
     qr_code_path = db.Column(db.String(200), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     student = db.relationship('User', foreign_keys=[student_id], backref='permissions')
     staff = db.relationship('User', foreign_keys=[staff_id], backref='reviewed_permissions')
@@ -75,8 +75,8 @@ class Bonafide(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
     remarks = db.Column(db.Text, nullable=True)
     approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     student = db.relationship('User', foreign_keys=[student_id], backref='bonafides')
     approver = db.relationship('User', foreign_keys=[approved_by])
@@ -106,6 +106,6 @@ class Notification(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     notif_type = db.Column(db.String(30), default='info')  # info, success, warning, danger
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', foreign_keys=[user_id], backref='notifications')

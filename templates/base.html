@@ -28,7 +28,7 @@
     <div class="sidebar-user">
       {% if session.photo and session.photo != 'default.png' %}
       <div class="avatar" style="background:none; border:2px solid #fff; overflow:hidden;">
-        <img src="{{ url_for('static', filename='uploads/profiles/' + session.photo) }}" alt="User Photo"
+        <img src="{% if session.photo.startswith('data:') %}{{ session.photo }}{% else %}{{ url_for('static', filename='uploads/profiles/' + session.photo) }}{% endif %}" alt="User Photo"
           style="width:100%;height:100%;object-fit:cover;" />
       </div>
       {% else %}

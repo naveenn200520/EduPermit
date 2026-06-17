@@ -562,6 +562,9 @@
                 <div class="cam-icon">📷</div>
                 <div>Camera not started</div>
                 <div style="font-size:12px;">Press "Start Scanner" to begin</div>
+                <div style="font-size:11px; margin-top:8px; color:#64748b;">
+                    💡 If camera permission is denied, check browser settings or use manual entry below
+                </div>
             </div>
             <video id="video" playsinline muted autoplay></video>
             <!-- Actual canvas for drawing overlay -->
@@ -694,10 +697,29 @@
                 });
             } catch (err) {
                 let msg = 'Camera permission denied.';
-                if (err.name === 'NotFoundError') msg = 'No camera found on this device.';
-                if (err.name === 'NotAllowedError') msg = 'Camera access was denied. Please allow camera access.';
-                if (err.name === 'NotReadableError') msg = 'Camera is already in use by another app.';
+                let helpText = '';
+                
+                if (err.name === 'NotFoundError') {
+                    msg = 'No camera found on this device.';
+                    helpText = 'Please connect a camera and try again.';
+                }
+                if (err.name === 'NotAllowedError') {
+                    msg = 'Camera access was denied.';
+                    helpText = 'Please click the camera icon in your browser address bar and allow camera access.';
+                }
+                if (err.name === 'NotReadableError') {
+                    msg = 'Camera is already in use by another app.';
+                    helpText = 'Please close other apps using the camera and try again.';
+                }
+                
                 setStatus('error', '❌ ' + msg);
+                
+                // Show help message
+                if (helpText) {
+                    setTimeout(() => {
+                        alert('Camera Help:\n\n' + helpText + '\n\nYou can also enter Gate Pass ID manually below.');
+                    }, 1000);
+                }
             }
         }
 

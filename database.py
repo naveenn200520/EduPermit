@@ -84,9 +84,8 @@ def seed():
             perm_objs.append(p)
         db.session.commit()
 
-        # Generate QR for the already-approved demo permission
+        # Generate QR for the already-approved demo permission (now generated on-the-fly)
         approved_perm = perm_objs[0]
-        approved_perm.qr_code_path = generate_gate_pass_qr(approved_perm, approved_perm.student, staff.name)
         db.session.commit()
 
         # Bonafides

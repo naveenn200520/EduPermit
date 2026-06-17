@@ -315,13 +315,7 @@
             <div class="gp-body">
                 <!-- QR Code -->
                 <div class="gp-qr">
-                    {% if perm.qr_code_path %}
-                    <img src="{{ url_for('static', filename=perm.qr_code_path) }}" alt="Gate Pass QR Code" />
-                    {% else %}
-                    <div
-                        style="width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:12px;border:2px dashed #64748b;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;">
-                        No QR</div>
-                    {% endif %}
+                    <img src="{{ url_for('serve_qr', perm_id=perm.id) }}" alt="Gate Pass QR Code" />
                     <div class="qr-label">Scan to verify<br />Gate Pass #{{ perm.id }}</div>
                 </div>
 

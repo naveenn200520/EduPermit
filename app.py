@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 from models import db, User, Department, Permission, Bonafide, Attendance, Notification
 from gate_pass import generate_gate_pass_qr
-from datetime import datetime
+from datetime import datetime, timezone
 import os
-import secrets
-from werkzeug.utils import secure_filename
+import base64
 from sqlalchemy.exc import IntegrityError
 
 
@@ -245,10 +244,10 @@ def profile():
             if file and file.filename != '':
                 ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                 if ext in ['png', 'jpg', 'jpeg', 'webp']:
-                    filename = f"user_{user.id}_{secrets.token_hex(4)}.{ext}"
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-                    user.photo = filename
+                    img_data = file.read()
+                    base64_img = base64.b64encode(img_data).decode('utf-8')
+                    mime_type = f"image/{ext}" if ext != 'jpg' else "image/jpeg"
+                    user.photo = f"data:{mime_type};base64,{base64_img}"
 
         user.name = request.form.get('name', user.name)
         new_email = request.form.get('email', '').strip()
@@ -276,7 +275,7 @@ def staff_dashboard():
     student_ids = [s.id for s in dept_students]
     pending = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'pending').count()
     approved = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'approved').count()
-    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod == True).count()
+    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod.is_(True)).count()
     recent_requests = Permission.query.filter(Permission.student_id.in_(student_ids)).order_by(Permission.created_at.desc()).limit(8).all()
     notifs = Notification.query.filter_by(user_id=user.id, is_read=False).count()
     return render_template('staff/dashboard.html', user=user, pending=pending, approved=approved,
@@ -310,11 +309,10 @@ def staff_approve(perm_id):
 
     perm.staff_id = user.id
     perm.staff_remarks = remarks
-    perm.updated_at = datetime.utcnow()
+    perm.updated_at = datetime.now(timezone.utc)
 
     if action == 'approve':
         perm.status = 'approved'
-        perm.qr_code_path = generate_gate_pass_qr(perm, perm.student, user.name, request.host_url)
         add_notification(perm.student_id, f"Your {perm.perm_type} request has been approved by {user.name}. Gate pass is ready!", "success")
         flash('Request approved and Gate Pass generated!', 'success')
     elif action == 'reject':
@@ -365,7 +363,7 @@ def hod_dashboard():
     user = get_current_user()
     dept_students = User.query.filter_by(dept_id=user.dept_id, role='student').all()
     student_ids = [s.id for s in dept_students]
-    forwarded_perms = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod == True, Permission.status == 'forwarded').count()
+    forwarded_perms = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod.is_(True), Permission.status == 'forwarded').count()
     total_perms = Permission.query.filter(Permission.student_id.in_(student_ids)).count()
     approved = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'approved').count()
     rejected = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'rejected').count()
@@ -383,7 +381,7 @@ def hod_approvals():
     user = get_current_user()
     dept_students = User.query.filter_by(dept_id=user.dept_id, role='student').all()
     student_ids = [s.id for s in dept_students]
-    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod == True).order_by(Permission.created_at.desc()).all()
+    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod.is_(True)).order_by(Permission.created_at.desc()).all()
     notifs = Notification.query.filter_by(user_id=user.id, is_read=False).count()
     return render_template('hod/approvals.html', user=user, forwarded=forwarded, notif_count=notifs)
 
@@ -396,11 +394,10 @@ def hod_approve(perm_id):
     action = request.form.get('action')
     remarks = request.form.get('remarks', '')
     perm.hod_remarks = remarks
-    perm.updated_at = datetime.utcnow()
+    perm.updated_at = datetime.now(timezone.utc)
 
     if action == 'approve':
         perm.status = 'approved'
-        perm.qr_code_path = generate_gate_pass_qr(perm, perm.student, f"HOD {user.name}", request.host_url)
         add_notification(perm.student_id, f"Your {perm.perm_type} request has been approved by HOD {user.name}. Gate pass ready!", "success")
         flash('Permission approved and Gate Pass generated!', 'success')
     elif action == 'reject':
@@ -451,7 +448,7 @@ def hod_reports():
     approved = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'approved').count()
     rejected = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'rejected').count()
     pending = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.status == 'pending').count()
-    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod == True).count()
+    forwarded = Permission.query.filter(Permission.student_id.in_(student_ids), Permission.forwarded_to_hod.is_(True)).count()
     staff_list = User.query.filter_by(dept_id=user.dept_id, role='staff').all()
     notifs = Notification.query.filter_by(user_id=user.id, is_read=False).count()
     return render_template('hod/reports.html', user=user, total=total, approved=approved,
@@ -642,9 +639,22 @@ def qr_scanner():
     return render_template('qr_scanner.html')
 
 
+@app.route('/api/qr/<int:perm_id>')
+def serve_qr(perm_id):
+    perm = db.get_or_404(Permission, perm_id)
+    if perm.status != 'approved':
+        return "QR Code not available", 404
+    qr_io = generate_gate_pass_qr(perm, request.host_url)
+    return send_file(qr_io, mimetype='image/png')
+
+
 if __name__ == '__main__':
+    import logging
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
     with app.app_context():
         # Create database tables
         db.create_all()
     port = int(os.environ.get('PORT', 5000))
+    print(f' * Running on http://127.0.0.1:{port}')
     app.run(host='0.0.0.0', port=port, debug=False)
